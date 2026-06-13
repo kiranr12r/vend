@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum VendorStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  INACTIVE
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
+enum DocumentType {
+  REGISTRATION_CERTIFICATE
+  PAN_CARD_COPY
+  ADDRESS_PROOF
+  ITR_PROOF
+  MSME_CERTIFICATE
+  OTHER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+
+  @@map("users")
+}
+
+model Vendor {
+  id        String       @id @default(cuid())
+  status    VendorStatus @default(DRAFT)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  gstNumber          String    @unique
+  tradeName          String
+  legalName          String
+  pan                String
+  dateOfRegistration DateTime
+  panLinkedAadhaar   Boolean   @default(false)
+  addressLine1       String
+  addressLine2       String?
+  city               String
+  state              String
+  pincode            String
+  contactPerson      String
+  contactEmail       String
+  contactPhone       String
+  departmentName     String?
+
+  natureOfService    String
+  paymentFrequency   String
+  paygroup           String?
+  groupCode          String?
+  compositeGstScheme Boolean   @default(false)
+  eInvoiceRequired   Boolean   @default(true)
+  registeredMsme     Boolean   @default(false)
+  msmeNumber         String?
+
+  itrFiledLastYear   Boolean   @default(false)
+  taxExemption       Boolean   @default(false)
+  tdsRate            Decimal?  @db.Decimal(5, 2)
+
+  agreementStartDate DateTime?
+  agreementEndDate   DateTime?
+
+  oracleVendorId     String?
+  oracleSiteId       String?
+
+  bankAccounts       BankAccount[]
+  documents          VendorDocument[]
+  auditLogs          AuditLog[]
+
+  @@map("vendors")
+}
+
+model BankAccount {
+  id              String      @id @default(cuid())
+  vendorId        String
+  vendor          Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  accountNumber   String
+  ifscCode        String
+  beneficiaryName String?
+  bankName        String
+  branchName      String
+  crn             String?
+  accountType     AccountType @default(CURRENT)
+  isPrimary       Boolean     @default(false)
+  isVerified      Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  @@map("bank_accounts")
+}
+
+model VendorDocument {
+  id           String       @id @default(cuid())
+  vendorId     String
+  vendor       Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  documentType DocumentType
+  fileName     String
+  fileUrl      String
+  fileSize     Int?
+  mimeType     String?
+  uploadedAt   DateTime     @default(now())
+
+  @@map("vendor_documents")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  vendorId  String
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  action    String
+  oldValue  String?
+  newValue  String?
+  changedBy String
+  changedAt DateTime @default(now())
+
+  @@map("audit_logs")
+}
