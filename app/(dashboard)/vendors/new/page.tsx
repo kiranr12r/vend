@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Step1ContactIdentity from "@/components/forms/steps/Step1ContactIdentity";
+import Step2BusinessCompliance from "@/components/forms/steps/Step2BusinessCompliance";
 
 const STEPS = [
   { id: 1, label: "Contact & Identity" },
@@ -183,7 +184,7 @@ export default function NewVendorPage() {
             style={{ animation: "slideUp 0.2s ease" }}
           >
             {currentStep === 1 && <Step1ContactIdentity data={formData} onChange={handleChange} />}
-            {currentStep === 2 && <PlaceholderStep title="Business & Compliance" desc="Registration, incorporation & compliance info" />}
+            {currentStep === 2 && <Step2BusinessCompliance data={formData} onChange={handleChange} />}
             {currentStep === 3 && <PlaceholderStep title="Bank Details" desc="Verified account details for payments" />}
             {currentStep === 4 && <PlaceholderStep title="Tax Information" desc="GST, TAN and tax registration details" />}
             {currentStep === 5 && <PlaceholderStep title="Agreement Details" desc="Contract terms, duration & approvals" />}
