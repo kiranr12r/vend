@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Step1ContactIdentity from "@/components/forms/steps/Step1ContactIdentity";
 import Step2BusinessCompliance from "@/components/forms/steps/Step2BusinessCompliance";
+import Step3BankDetails from "@/components/forms/steps/Step3BankDetails";
+import Step4TaxInformation from "@/components/forms/steps/Step4TaxInformation";
 
 const STEPS = [
   { id: 1, label: "Contact & Identity" },
@@ -185,8 +187,8 @@ export default function NewVendorPage() {
           >
             {currentStep === 1 && <Step1ContactIdentity data={formData} onChange={handleChange} />}
             {currentStep === 2 && <Step2BusinessCompliance data={formData} onChange={handleChange} />}
-            {currentStep === 3 && <PlaceholderStep title="Bank Details" desc="Verified account details for payments" />}
-            {currentStep === 4 && <PlaceholderStep title="Tax Information" desc="GST, TAN and tax registration details" />}
+            {currentStep === 3 && <Step3BankDetails data={formData} onChange={handleChange} />}
+            {currentStep === 4 && <Step4TaxInformation data={formData} onChange={handleChange} />}
             {currentStep === 5 && <PlaceholderStep title="Agreement Details" desc="Contract terms, duration & approvals" />}
             {currentStep === 6 && <PlaceholderStep title="Document Upload" desc="Upload required supporting documents" />}
           </div>
