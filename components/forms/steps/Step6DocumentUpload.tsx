@@ -181,7 +181,7 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Accepted formats: <strong className="text-gray-600">PDF, JPG, JPEG, PNG</strong> — Max file size: <strong className="text-gray-600">{MAX_SIZE_MB}MB</strong> per document. Fields marked with <span className="text-red-400">*</span> are mandatory.
+            Accepted Formats: <strong className="text-gray-600">PDF, JPG, JPEG, PNG</strong> — Max file size: <strong className="text-gray-600">{MAX_SIZE_MB}MB</strong> per document. Fields marked with <span className="text-red-400">*</span> are mandatory.
           </p>
         </div>
 
