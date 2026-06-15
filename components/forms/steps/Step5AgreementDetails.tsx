@@ -53,7 +53,7 @@ export default function Step5AgreementDetails({ data, onChange }: Props) {
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className={lbl}>Agreement Start Date <span className="text-red-400">*</span></label>
+              <label className={lbl}>Agreement start Date <span className="text-red-400">*</span></label>
               <input
                 type="date"
                 value={start}
