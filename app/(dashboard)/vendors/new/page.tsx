@@ -5,6 +5,8 @@ import Step1ContactIdentity from "@/components/forms/steps/Step1ContactIdentity"
 import Step2BusinessCompliance from "@/components/forms/steps/Step2BusinessCompliance";
 import Step3BankDetails from "@/components/forms/steps/Step3BankDetails";
 import Step4TaxInformation from "@/components/forms/steps/Step4TaxInformation";
+import Step5AgreementDetails from "@/components/forms/steps/Step5AgreementDetails";
+import Step6DocumentUpload from "@/components/forms/steps/Step6DocumentUpload";
 
 const STEPS = [
   { id: 1, label: "Contact & Identity" },
@@ -189,8 +191,8 @@ export default function NewVendorPage() {
             {currentStep === 2 && <Step2BusinessCompliance data={formData} onChange={handleChange} />}
             {currentStep === 3 && <Step3BankDetails data={formData} onChange={handleChange} />}
             {currentStep === 4 && <Step4TaxInformation data={formData} onChange={handleChange} />}
-            {currentStep === 5 && <PlaceholderStep title="Agreement Details" desc="Contract terms, duration & approvals" />}
-            {currentStep === 6 && <PlaceholderStep title="Document Upload" desc="Upload required supporting documents" />}
+            {currentStep === 5 && <Step5AgreementDetails data={formData} onChange={handleChange} />}
+            {currentStep === 6 && <Step6DocumentUpload data={formData} onChange={handleChange} />}
           </div>
         </div>
       </div>
