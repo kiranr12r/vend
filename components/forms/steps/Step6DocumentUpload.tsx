@@ -26,18 +26,18 @@ const MAX_SIZE_MB = 5;
 
 export default function Step6DocumentUpload({ data, onChange }: Props) {
   const uploads: Record<string, { name: string; size: number; type: string }> = data.uploads || {};
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
 
   function handleFile(key: string, file: File | null) {
     if (!file) return;
 
     // Validate size
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setErrors((prev) => ({ ...prev, [key]: `File too large. Max size is ${MAX_SIZE_MB}MB.` }));
+      setFileErrors((prev) => ({ ...prev, [key]: `File too large. Max size is ${MAX_SIZE_MB}MB.` }));
       return;
     }
 
-    setErrors((prev) => ({ ...prev, [key]: "" }));
+    setFileErrors((prev) => ({ ...prev, [key]: "" }));
     onChange("uploads", {
       ...uploads,
       [key]: { name: file.name, size: file.size, type: file.type },
@@ -104,9 +104,9 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
 
         {/* Document List */}
         <div className="space-y-2">
-          {DOCUMENTS.map((doc) => {
-            const uploaded = uploads[doc.key];
-            const error = errors[doc.key];
+{DOCUMENTS.map((doc) => {
+             const uploaded = uploads[doc.key];
+             const error = fileErrors[doc.key];
 
             return (
               <div key={doc.key} className={`border rounded-xl transition-all duration-200 ${uploaded ? "border-emerald-200 bg-emerald-50/40" : error ? "border-red-200 bg-red-50/40" : "border-gray-100 bg-white hover:border-gray-200"}`}>
