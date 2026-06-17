@@ -1,12 +1,10 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -25,16 +23,17 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
-        callbackUrl: "/vendors/new",
       });
-      console.log("SignIn result:", result);
-      if (result?.error) {
+
+      if (!result || result.error) {
         setError("Invalid email or password. Please try again.");
         setLoading(false);
         return;
       }
-      router.push("/vendors/new");
-      router.refresh();
+
+      // Hard navigation ensures the session cookie is sent on the next request,
+      // avoiding a redirect loop on slower production (Vercel) network round-trips.
+      window.location.href = "/vendors/new";
     } catch (e) {
       console.error("Login error:", e);
       setError("Something went wrong. Please try again.");
