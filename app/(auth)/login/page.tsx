@@ -20,14 +20,26 @@ export default function LoginPage() {
     }
     setLoading(true);
     setError("");
-    const result = await signIn("credentials", { email, password, redirect: false });
-    if (result?.error) {
-      setError("Invalid email or password. Please try again.");
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/vendors/new",
+      });
+      console.log("SignIn result:", result);
+      if (result?.error) {
+        setError("Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
+      }
+      router.push("/vendors/new");
+      router.refresh();
+    } catch (e) {
+      console.error("Login error:", e);
+      setError("Something went wrong. Please try again.");
       setLoading(false);
-      return;
     }
-    router.push("/vendors/new");
-    router.refresh();
   }
 
   return (
