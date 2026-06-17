@@ -1,12 +1,17 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { SignOutButton } from "@/components/SignOutButton";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getServerSession(authOptions);
+  const name = session?.user?.name ?? "Admin User";
+  const email = session?.user?.email ?? "";
+  const initials = name.split(" ").map((w: string) => w[0]).join("").toUpperCase().slice(0, 2);
+
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden">
-
-      {/* Sidebar */}
       <aside className="w-52 min-w-52 bg-white border-r border-gray-200 flex flex-col">
-        {/* Brand */}
         <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-blue-50 border-2 border-blue-600 flex items-center justify-center text-xs font-bold text-blue-600 shrink-0">
             VMS
@@ -17,7 +22,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </div>
 
-        {/* Nav */}
         <div className="px-2 py-2 flex-1">
           <p className="px-2 pt-2 pb-1 text-xs font-semibold text-gray-300 uppercase tracking-widest">Main Menu</p>
           <nav className="space-y-0.5">
@@ -33,7 +37,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
               </svg>
               Vendor List
-              <span className="ml-auto text-xs text-gray-400">12</span>
             </Link>
             <Link href="/vendors/oracle" className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-600 hover:bg-blue-50 hover:text-blue-700 transition-all group">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -50,18 +53,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
 
-        {/* User */}
-        <div className="px-3 py-3 border-t border-gray-100 flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">AD</div>
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-gray-800 truncate">Admin User</p>
-            <p className="text-xs text-gray-400 truncate">admin@vendorlink.com</p>
+        <div className="px-3 py-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+              {initials}
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-800 truncate">{name}</p>
+              <p className="text-xs text-gray-400 truncate">{email}</p>
+            </div>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto shrink-0 animate-pulse" />
           </div>
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 ml-auto shrink-0 animate-pulse" />
+          <SignOutButton />
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 flex flex-col overflow-hidden min-w-0">
         {children}
       </main>
