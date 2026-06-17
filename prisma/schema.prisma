@@ -28,12 +28,20 @@ enum DocumentType {
   OTHER
 }
 
+enum UserRole {
+  ADMIN       // Full access — manage users, all pages
+  INITIATOR   // Can add vendors and track their own submissions
+  APPROVER    // Can approve/reject vendors sent to them
+  IC_TEAM     // Can raise clarifications; cannot approve
+  ACCOUNTS    // Final approval + Oracle/KMIS sync
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String
   password  String
-  role      String   @default("ADMIN")
+  role      UserRole @default(INITIATOR)
   createdAt DateTime @default(now())
 
   @@map("users")
