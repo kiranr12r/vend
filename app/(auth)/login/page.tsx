@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -230,6 +231,12 @@ export default function LoginPage() {
             Access is admin-managed. Contact your administrator for an account.
           </p>
 
+          <p className="text-center text-xs text-gray-500 pt-1">
+            Need an account?{" "}
+            <Link href="/register" className="text-[#ED1C24] font-semibold hover:underline">
+              Request one
+            </Link>
+          </p>
         </div>
       </div>
 
