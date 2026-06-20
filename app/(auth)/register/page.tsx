@@ -1,9 +1,11 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [form, setForm] = useState({
     firstName: "", lastName: "", dateOfBirth: "", email: "",
     phoneNumber: "", panCard: "", address: "", gstNumber: "",
@@ -20,8 +22,55 @@ export default function RegisterPage() {
   }
 
   async function handleRegister() {
-    setError("Account creation is admin-managed. Please contact your administrator.");
+  const { firstName, lastName, email, password, confirmPassword } = form;
+
+  if (!firstName || !lastName || !email || !password || !confirmPassword) {
+    setError("First name, last name, email and password are required.");
+    return;
   }
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters.");
+    return;
+  }
+  if (password !== confirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
+
+  setLoading(true);
+  setError("");
+
+  try {
+    const res = await fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name:        `${firstName} ${lastName}`,
+        email,
+        password,
+        role:        "ADMIN",
+        dateOfBirth: form.dateOfBirth,
+        phoneNumber: form.phoneNumber,
+        panCard:     form.panCard,
+        address:     form.address,
+        gstNumber:   form.gstNumber,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error ?? "Registration failed. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    router.push("/login");
+  } catch {
+    setError("Something went wrong. Please try again.");
+    setLoading(false);
+  }
+}
 
   const strength = (() => {
     const p = form.password; if (!p) return 0;
