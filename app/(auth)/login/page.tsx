@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import Link from "next/link";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -227,26 +226,9 @@ export default function LoginPage() {
             )}
           </button>
 
-          <div className="flex items-center gap-3 py-1">
-            <div className="flex-1 border-t border-dashed border-gray-300" />
-            <span className="text-xs text-gray-400">Or sign in with</span>
-            <div className="flex-1 border-t border-dashed border-gray-300" />
-          </div>
-
-          <div className="flex justify-center">
-            <Link
-              href="/register"
-              className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-gray-200 bg-white/70 hover:bg-white/95 transition-all text-xs font-medium text-gray-600"
-              style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}
-            >
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="#555" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="12" cy="7" r="4" stroke="#555" strokeWidth="2" />
-                <path d="M16 11l2 2 4-4" stroke="#ED1C24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Create new account
-            </Link>
-          </div>
+          <p className="text-center text-xs text-gray-400">
+            Access is admin-managed. Contact your administrator for an account.
+          </p>
 
         </div>
       </div>

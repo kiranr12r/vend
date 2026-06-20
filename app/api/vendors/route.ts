@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { requireAuth, requireRole, sanitizeVendorForRole } from "@/lib/rbac";
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const guard = requireRole(session, ["ADMIN", "INITIATOR"]);
+  if (guard) return guard;
+
   try {
     const body = await req.json();
 
@@ -92,6 +99,10 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  const guard = requireAuth(session);
+  if (guard) return guard;
+
   try {
     const vendors = await prisma.vendor.findMany({
       orderBy: { createdAt: "desc" },
@@ -101,7 +112,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ success: true, vendors });
+    return NextResponse.json({
+      success: true,
+      vendors: vendors.map((vendor: any) => sanitizeVendorForRole(vendor, session!.user.role)),
+    });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: "Failed to fetch vendors" },

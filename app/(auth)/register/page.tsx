@@ -1,11 +1,9 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [form, setForm] = useState({
     firstName: "", lastName: "", dateOfBirth: "", email: "",
     phoneNumber: "", panCard: "", address: "", gstNumber: "",
@@ -22,33 +20,7 @@ export default function RegisterPage() {
   }
 
   async function handleRegister() {
-    const { firstName, lastName, email, password, confirmPassword } = form;
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
-      setError("First name, last name, email and password are required."); return;
-    }
-    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
-    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
-    setLoading(true); setError("");
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `${firstName} ${lastName}`,
-          email, password, role: "ADMIN",
-          dateOfBirth: form.dateOfBirth,
-          phoneNumber: form.phoneNumber,
-          panCard: form.panCard,
-          address: form.address,
-          gstNumber: form.gstNumber,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error ?? "Registration failed."); setLoading(false); return; }
-      router.push("/login");
-    } catch {
-      setError("Something went wrong. Please try again."); setLoading(false);
-    }
+    setError("Account creation is admin-managed. Please contact your administrator.");
   }
 
   const strength = (() => {
@@ -130,7 +102,7 @@ export default function RegisterPage() {
           >
             <Image src="/kotak-logo.jpeg" alt="Kotak Mahindra" width={58} height={58} className="object-contain rounded-xl"/>
           </div>
-          <h1 className="text-xl font-bold text-gray-800">Create Account</h1>
+          <h1 className="text-xl font-bold text-gray-800">Account Request</h1>
           <p className="text-gray-500 text-xs mt-1">Kotak Mahindra AMC · Vendor Management Portal</p>
         </div>
 
@@ -286,7 +258,7 @@ export default function RegisterPage() {
           >
             {loading
               ? <><svg className="animate-spin" width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="white" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0110 10" stroke="white" strokeWidth="3" strokeLinecap="round"/></svg>Creating account...</>
-              : "Create Account"
+              : "Request Account"
             }
           </button>
 

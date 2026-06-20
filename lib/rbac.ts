@@ -4,6 +4,9 @@
  * Used by middleware.ts (route guards) and API routes (server-side checks).
  */
 
+import { NextResponse } from "next/server";
+import { Session } from "next-auth";
+
 export type UserRole = "ADMIN" | "INITIATOR" | "APPROVER" | "IC_TEAM" | "ACCOUNTS";
 
 // ─── Route Permission Map ────────────────────────────────────────────────────
@@ -86,26 +89,81 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
   ],
 };
 
+export function requireAuth(session: Session | null): NextResponse | null {
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
+  }
+  return null;
+}
+
+export function maskPan(pan?: string | null): string {
+  if (!pan) return "—";
+  if (pan.length <= 4) return "****";
+  return `${"*".repeat(pan.length - 4)}${pan.slice(-4)}`;
+}
+
+export function maskAccountNumber(accountNumber?: string | null): string {
+  if (!accountNumber) return "—";
+  if (accountNumber.length <= 4) return "****";
+  return `${"*".repeat(accountNumber.length - 4)}${accountNumber.slice(-4)}`;
+}
+
+export function maskIfsc(ifscCode?: string | null): string | null {
+  if (!ifscCode) return null;
+  if (ifscCode.length <= 4) return "****";
+  return `${ifscCode.slice(0, 4)}${"*".repeat(Math.max(0, ifscCode.length - 4))}`;
+}
+
+export function sanitizeVendorForRole(vendor: any, role: UserRole | undefined): any {
+  if (!vendor || role === "ADMIN" || role === "ACCOUNTS") return vendor;
+
+  const sanitized = { ...vendor };
+
+  if (sanitized.pan) {
+    sanitized.pan = maskPan(sanitized.pan);
+  }
+
+  if (Array.isArray(sanitized.bankAccounts)) {
+    sanitized.bankAccounts = sanitized.bankAccounts.map((account: any) => ({
+      ...account,
+      accountNumber: maskAccountNumber(account.accountNumber),
+      ifscCode: maskIfsc(account.ifscCode),
+      crn: null,
+    }));
+  }
+
+  if (Array.isArray(sanitized.documents)) {
+    sanitized.documents = sanitized.documents.map((document: any) => ({
+      ...document,
+      fileUrl: "",
+    }));
+  }
+
+  return sanitized;
+}
+
+export function canManageBankDetails(role: UserRole | undefined): boolean {
+  return role === "ADMIN" || role === "ACCOUNTS";
+}
+
 // ─── Server-side API route guard ─────────────────────────────────────────────
 // Usage in any API route:
 //   const check = requireRole(session, ["ADMIN", "ACCOUNTS"]);
 //   if (check) return check; // returns a 401/403 NextResponse
-import { NextResponse } from "next/server";
-import { Session } from "next-auth";
 
 export function requireRole(
   session: Session | null,
   allowedRoles: UserRole[]
 ): NextResponse | null {
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
-  }
-  const role = session.user.role;
+  const authGuard = requireAuth(session);
+  if (authGuard) return authGuard;
+
+  const role = session!.user.role;
   if (!allowedRoles.includes(role)) {
     return NextResponse.json(
       { error: `Access denied. Required role: ${allowedRoles.join(" or ")}` },
       { status: 403 }
     );
   }
-  return null; // ✅ allowed
+  return null;
 }

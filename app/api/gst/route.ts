@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { requireAuth } from "@/lib/rbac";
+
+const GST_REQUESTS = new Map<string, { count: number; resetAt: number }>();
 
 const GST_DATABASE: Record<string, any> = {
   "29ABCDE1234F1Z5": {
@@ -183,12 +188,45 @@ const GST_DATABASE: Record<string, any> = {
   },
 };
 
+function getClientIp(req: NextRequest): string {
+  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+}
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now();
+  const windowMs = 60_000;
+  const limit = 30;
+  const current = GST_REQUESTS.get(key);
+
+  if (!current || current.resetAt < now) {
+    GST_REQUESTS.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+
+  if (current.count >= limit) return true;
+
+  current.count += 1;
+  GST_REQUESTS.set(key, current);
+  return false;
+}
+
 function validateGSTFormat(gst: string): boolean {
   const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
   return regex.test(gst);
 }
 
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const authGuard = requireAuth(session);
+  if (authGuard) return authGuard;
+
+  if (isRateLimited(getClientIp(req))) {
+    return NextResponse.json(
+      { success: false, error: "Too many requests. Please try again later." },
+      { status: 429 }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const gstin = searchParams.get("gstin")?.toUpperCase().trim();
 
