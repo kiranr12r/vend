@@ -262,5 +262,6 @@ Fetch all vendors with bank accounts and documents.
 <div align="center">
 
 Built with ❤️ by the FiniteLoop team for Kotak Mahindra AMC
+https://docs.google.com/spreadsheets/d/1q41XuUpsOlOb_qNlWWksD_cDIoNY0Jlr/edit?usp=drive_link&ouid=107979258621554912791&rtpof=true&sd=true
 
 </div>
