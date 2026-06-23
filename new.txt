@@ -1,0 +1,8 @@
+# DATABASE_URL="postgresql://neondb_owner:npg_LJ9lhNiqwtu5@ep-green-band-ah2n2mcm-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+NEXTAUTH_SECRET="pZvXdE+h6iMaSa1Vo9VqPTblIPQyxG67HNXzBTvtkiM="
+NEXTAUTH_URL="https://vendor-management-system-beta.vercel.app"
+
+DATABASE_URL="postgresql://neondb_owner:npg_LJ9lhNiqwtu5@ep-green-band-ah2n2mcm-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&pgbouncer=true"
+
+BLOB_STORE_ID="store_A1q6IL8q55r52Xh6"
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_A1q6IL8q55r52Xh6_9XRAorvSqa7MmjoMOY134hZ7tmWpWJ"
