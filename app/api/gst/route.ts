@@ -79,8 +79,8 @@ export async function GET(req: NextRequest) {
   await new Promise((r) => setTimeout(r, 600));
 
   try {
-    const record = await prisma.gstMaster.findUnique({
-      where: { gstin },
+    const record = await prisma.gstin_profiles.findUnique({
+      where: { gstin: gstin },
     });
 
     if (!record) {
@@ -93,7 +93,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    if (record.status !== "ACTIVE") {
+    const isActive = record.status && record.status !== "INACTIVE";
+    if (!isActive) {
       return NextResponse.json(
         { success: false, error: "This GSTIN is inactive or cancelled." },
         { status: 422 }

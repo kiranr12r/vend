@@ -4,6 +4,7 @@ import { useState } from "react";
 interface Props {
   data: any;
   onChange: (field: string, value: any) => void;
+  errors?: Record<string, string>;
 }
 
 interface DocConfig {
@@ -25,23 +26,42 @@ const DOCUMENTS: DocConfig[] = [
 const MAX_SIZE_MB = 5;
 
 export default function Step6DocumentUpload({ data, onChange }: Props) {
-  const uploads: Record<string, { name: string; size: number; type: string }> = data.uploads || {};
-  const [fileErrors, setFileErrors] = useState<Record<string, string>>({});
+  const uploads: Record<string, { name: string; size: number; type: string; url?: string }> = data.uploads || {};
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
-  function handleFile(key: string, file: File | null) {
+  async function handleFile(key: string, file: File | null) {
     if (!file) return;
 
-    // Validate size
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-      setFileErrors((prev) => ({ ...prev, [key]: `File too large. Max size is ${MAX_SIZE_MB}MB.` }));
+      setErrors((prev) => ({ ...prev, [key]: `File too large. Max size is ${MAX_SIZE_MB}MB.` }));
       return;
     }
 
-    setFileErrors((prev) => ({ ...prev, [key]: "" }));
-    onChange("uploads", {
-      ...uploads,
-      [key]: { name: file.name, size: file.size, type: file.type },
-    });
+    setErrors((prev) => ({ ...prev, [key]: "" }));
+    setUploading((prev) => ({ ...prev, [key]: true }));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const json = await res.json();
+
+      if (!json.success) {
+        setErrors((prev) => ({ ...prev, [key]: json.error || "Upload failed" }));
+        return;
+      }
+
+      onChange("uploads", {
+        ...uploads,
+        [key]: { name: json.fileName, size: json.fileSize, type: json.mimeType, url: json.url },
+      });
+    } catch (e) {
+      setErrors((prev) => ({ ...prev, [key]: "Network error. Please try again." }));
+    } finally {
+      setUploading((prev) => ({ ...prev, [key]: false }));
+    }
   }
 
   function handleRemove(key: string) {
@@ -104,16 +124,22 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
 
         {/* Document List */}
         <div className="space-y-2">
-{DOCUMENTS.map((doc) => {
-             const uploaded = uploads[doc.key];
-             const error = fileErrors[doc.key];
+          {DOCUMENTS.map((doc) => {
+            const uploaded = uploads[doc.key];
+            const error = errors[doc.key];
+            const isUploading = uploading[doc.key];
 
             return (
               <div key={doc.key} className={`border rounded-xl transition-all duration-200 ${uploaded ? "border-emerald-200 bg-emerald-50/40" : error ? "border-red-200 bg-red-50/40" : "border-gray-100 bg-white hover:border-gray-200"}`}>
                 <div className="flex items-center gap-3 p-3.5">
                   {/* Icon */}
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${uploaded ? "bg-emerald-100" : "bg-gray-100"}`}>
-                    {uploaded ? (
+                    {isUploading ? (
+                      <svg className="w-4 h-4 text-blue-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                    ) : uploaded ? (
                       <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
                       </svg>
@@ -131,7 +157,9 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
                       {doc.required && <span className="text-red-400 text-xs">*</span>}
                       {!doc.required && <span className="text-xs text-gray-300 font-normal">(Optional)</span>}
                     </div>
-                    {uploaded ? (
+                    {isUploading ? (
+                      <p className="text-xs text-blue-500 mt-0.5">Uploading…</p>
+                    ) : uploaded ? (
                       <p className="text-xs text-emerald-600 mt-0.5 truncate">
                         {uploaded.name} — {formatSize(uploaded.size)}
                       </p>
@@ -143,14 +171,14 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 shrink-0">
-                    {uploaded && (
+                    {uploaded && !isUploading && (
                       <button onClick={() => handleRemove(doc.key)} className="p-1.5 hover:bg-red-50 rounded-lg transition-all group">
                         <svg className="w-3.5 h-3.5 text-gray-300 group-hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                       </button>
                     )}
-                    <label className="cursor-pointer">
+                    <label className={`cursor-pointer ${isUploading ? "pointer-events-none opacity-50" : ""}`}>
                       <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
                         uploaded
                           ? "bg-white border border-gray-200 text-gray-500 hover:border-blue-300 hover:text-blue-600"
@@ -165,6 +193,7 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
                         type="file"
                         className="hidden"
                         accept={doc.accept}
+                        disabled={isUploading}
                         onChange={(e) => handleFile(doc.key, e.target.files?.[0] || null)}
                       />
                     </label>
@@ -181,7 +210,7 @@ export default function Step6DocumentUpload({ data, onChange }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Accepted Formats: <strong className="text-gray-600">PDF, JPG, JPEG, PNG</strong> — Max file size: <strong className="text-gray-600">{MAX_SIZE_MB}MB</strong> per document. Fields marked with <span className="text-red-400">*</span> are mandatory.
+            Accepted formats: <strong className="text-gray-600">PDF, JPG, JPEG, PNG</strong> — Max file size: <strong className="text-gray-600">{MAX_SIZE_MB}MB</strong> per document. Fields marked with <span className="text-red-400">*</span> are mandatory.
           </p>
         </div>
 

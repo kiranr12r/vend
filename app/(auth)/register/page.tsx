@@ -41,19 +41,14 @@ export default function RegisterPage() {
   setError("");
 
   try {
-    const res = await fetch("/api/users", {
+    const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name:        `${firstName} ${lastName}`,
         email,
         password,
-        role:        "ADMIN",
-        dateOfBirth: form.dateOfBirth,
-        phoneNumber: form.phoneNumber,
-        panCard:     form.panCard,
-        address:     form.address,
-        gstNumber:   form.gstNumber,
+        role:        "INITIATOR",
       }),
     });
 
