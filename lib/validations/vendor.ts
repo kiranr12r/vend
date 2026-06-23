@@ -76,7 +76,7 @@ export const uploadSchema = z.object({
 });
 
 export const step6Schema = z.object({
-  uploads: z.record(uploadSchema).optional(),
+  uploads: z.record(z.string(), uploadSchema).optional(),
 });
 
 export type Step1Data = z.infer<typeof step1Schema>;
