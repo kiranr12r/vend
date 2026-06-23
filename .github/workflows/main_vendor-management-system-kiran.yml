@@ -1,19 +1,8 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
-name: Build and deploy Node.js app to Azure Web App - vendor-management-system-kiran
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +13,10 @@ jobs:
           node-version: '22.x'
 
       - name: npm install, build, and test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
         run: |
           npm install
           npm run build --if-present
@@ -34,32 +27,3 @@ jobs:
         with:
           name: node-app
           path: .
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: node-app
-      
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E6B9A182D71442B0810CAEA64DFE559F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A700E9113B1642A6AE38E99CB0C21A0B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_89D94800FCCC4E9392AD28F5A1E18A7B }}
-
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'vendor-management-system-kiran'
-          slot-name: 'Production'
-          package: .
-          
