@@ -4,6 +4,14 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole, sanitizeVendorForRole } from "@/lib/rbac";
 
+const DOCUMENT_TYPE_MAP: Record<string, string> = {
+  registrationCertificate: "REGISTRATION_CERTIFICATE",
+  panCardCopy: "PAN_CARD_COPY",
+  addressProof: "ADDRESS_PROOF",
+  itrProof: "ITR_PROOF",
+  msmeCertificate: "MSME_CERTIFICATE",
+};
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const guard = requireRole(session, ["ADMIN", "INITIATOR"]);
@@ -74,8 +82,24 @@ export async function POST(req: NextRequest) {
       },
       include: {
         bankAccounts: true,
+        documents: true,
       },
     });
+
+    if (body.uploads && typeof body.uploads === "object") {
+      for (const [key, doc] of Object.entries(body.uploads as Record<string, any>)) {
+        await prisma.vendorDocument.create({
+          data: {
+            vendorId: vendor.id,
+            documentType: (DOCUMENT_TYPE_MAP[key] || "OTHER") as any,
+            fileName: doc.name,
+            fileUrl: doc.url,
+            fileSize: doc.size,
+            mimeType: doc.type,
+          },
+        });
+      }
+    }
 
     return NextResponse.json(
       { success: true, vendor },

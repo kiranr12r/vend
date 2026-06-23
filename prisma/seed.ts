@@ -132,7 +132,7 @@ async function main() {
   ];
 
   for (const gst of gstMasterData) {
-    await prisma.gstMaster.upsert({
+    await prisma.gstin_profiles.upsert({
       where:  { gstin: gst.gstin },
       update: { tradeName: gst.tradeName, legalName: gst.legalName, status: gst.status },
       create: gst,

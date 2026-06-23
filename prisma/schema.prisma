@@ -6,59 +6,33 @@ datasource db {
   provider = "postgresql"
 }
 
-enum VendorStatus {
-  DRAFT
-  PENDING_APPROVAL
-  APPROVED
-  REJECTED
-  INACTIVE
-}
-
-enum AccountType {
-  SAVINGS
-  CURRENT
-}
-
-enum DocumentType {
-  REGISTRATION_CERTIFICATE
-  PAN_CARD_COPY
-  ADDRESS_PROOF
-  ITR_PROOF
-  MSME_CERTIFICATE
-  OTHER
-}
-
-enum UserRole {
-  ADMIN       // Full access — manage users, all pages
-  INITIATOR   // Can add vendors and track their own submissions
-  APPROVER    // Can approve/reject vendors sent to them
-  IC_TEAM     // Can raise clarifications; cannot approve
-  ACCOUNTS    // Final approval + Oracle/KMIS sync
-}
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  password  String
-  role      UserRole @default(INITIATOR)
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  email       String    @unique
+  name        String
+  password    String
+  createdAt   DateTime  @default(now())
+  role        UserRole  @default(INITIATOR)
+  address     String?
+  dateOfBirth DateTime?
+  gstNumber   String?
+  panCard     String?
+  phoneNumber String?
 
   @@map("users")
 }
 
 model Vendor {
-  id        String       @id @default(cuid())
-  status    VendorStatus @default(DRAFT)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-
-  gstNumber          String    @unique
+  id                 String           @id @default(cuid())
+  status             VendorStatus     @default(DRAFT)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  gstNumber          String           @unique
   tradeName          String
   legalName          String
   pan                String
   dateOfRegistration DateTime
-  panLinkedAadhaar   Boolean   @default(false)
+  panLinkedAadhaar   Boolean          @default(false)
   addressLine1       String
   addressLine2       String?
   city               String
@@ -68,29 +42,24 @@ model Vendor {
   contactEmail       String
   contactPhone       String
   departmentName     String?
-
   natureOfService    String
   paymentFrequency   String
   paygroup           String?
   groupCode          String?
-  compositeGstScheme Boolean   @default(false)
-  eInvoiceRequired   Boolean   @default(true)
-  registeredMsme     Boolean   @default(false)
+  compositeGstScheme Boolean          @default(false)
+  eInvoiceRequired   Boolean          @default(true)
+  registeredMsme     Boolean          @default(false)
   msmeNumber         String?
-
-  itrFiledLastYear   Boolean   @default(false)
-  taxExemption       Boolean   @default(false)
-  tdsRate            Decimal?  @db.Decimal(5, 2)
-
+  itrFiledLastYear   Boolean          @default(false)
+  taxExemption       Boolean          @default(false)
+  tdsRate            Decimal?         @db.Decimal(5, 2)
   agreementStartDate DateTime?
   agreementEndDate   DateTime?
-
   oracleVendorId     String?
   oracleSiteId       String?
-
+  auditLogs          AuditLog[]
   bankAccounts       BankAccount[]
   documents          VendorDocument[]
-  auditLogs          AuditLog[]
 
   @@map("vendors")
 }
@@ -98,7 +67,6 @@ model Vendor {
 model BankAccount {
   id              String      @id @default(cuid())
   vendorId        String
-  vendor          Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   accountNumber   String
   ifscCode        String
   beneficiaryName String?
@@ -109,6 +77,7 @@ model BankAccount {
   isPrimary       Boolean     @default(false)
   isVerified      Boolean     @default(false)
   createdAt       DateTime    @default(now())
+  vendor          Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("bank_accounts")
 }
@@ -116,13 +85,13 @@ model BankAccount {
 model VendorDocument {
   id           String       @id @default(cuid())
   vendorId     String
-  vendor       Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   documentType DocumentType
   fileName     String
   fileUrl      String
   fileSize     Int?
   mimeType     String?
   uploadedAt   DateTime     @default(now())
+  vendor       Vendor       @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("vendor_documents")
 }
@@ -130,43 +99,38 @@ model VendorDocument {
 model AuditLog {
   id        String   @id @default(cuid())
   vendorId  String
-  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   action    String
   oldValue  String?
   newValue  String?
   changedBy String
   changedAt DateTime @default(now())
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
 
   @@map("audit_logs")
 }
-model BankMaster {
-  id         String   @id @default(cuid())
-  ifscCode   String   @unique
-  bankName   String
-  branchName String
-  city       String
-  state      String
-  createdAt  DateTime @default(now())
 
-  pennyDropLogs PennyDropLog[]
+model gstin_profiles {
+  id                 String   @id
+  gstin              String   @unique
+  tradeName          String?
+  legalName          String?
+  pan                String?
+  dateOfRegistration String?
+  status             String?
+  businessType       String?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  state              String?
+  pincode            String?
+  natureOfBusiness   String?
+  annualTurnover     String?
+  compositeScheme    Boolean?
+  eInvoiceApplicable Boolean?
+  createdAt          DateTime?
+  updatedAt          DateTime?
 
-  @@map("bank_master")
-}
-
-model PennyDropLog {
-  id              String   @id @default(cuid())
-  accountNumber   String
-  ifscCode        String
-  beneficiaryName String?
-  accountType     AccountType @default(CURRENT)
-  status          String   // SUCCESS | NAME_MISMATCH | ACCOUNT_FROZEN
-  transactionId   String   @unique
-  createdAt       DateTime @default(now())
-
-  bankMaster BankMaster @relation(fields: [ifscCode], references: [ifscCode])
-
-  @@unique([accountNumber, ifscCode])
-  @@map("penny_drop_logs")
+  @@map("gstin_profiles")
 }
 
 model GstMaster {
@@ -190,4 +154,62 @@ model GstMaster {
   createdAt          DateTime @default(now())
 
   @@map("gst_master")
+}
+
+model BankMaster {
+  id         String   @id @default(cuid())
+  ifscCode   String   @unique @map("ifsccode")
+  bankName   String   @map("bankname")
+  branchName String   @map("branchname")
+  city       String   @map("city")
+  state      String   @map("state")
+  createdAt  DateTime @default(now()) @map("createdat")
+  pennyDrops PennyDropLog[]
+
+  @@map("bank_master")
+}
+
+model PennyDropLog {
+  id              String      @id @default(cuid())
+  accountNumber   String      @map("accountnumber")
+  ifscCode        String      @map("ifsccode")
+  beneficiaryName String?     @map("beneficiaryname")
+  accountType     AccountType @default(CURRENT) @map("accounttype")
+  status          String      @map("status")
+  transactionId   String      @unique @map("transactionid")
+  createdAt       DateTime    @default(now()) @map("createdat")
+  bankMaster      BankMaster  @relation(fields: [ifscCode], references: [ifscCode])
+
+  @@unique([accountNumber, ifscCode])
+  @@map("penny_drop_logs")
+}
+
+enum VendorStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  INACTIVE
+}
+
+enum AccountType {
+  SAVINGS
+  CURRENT
+}
+
+enum DocumentType {
+  REGISTRATION_CERTIFICATE
+  PAN_CARD_COPY
+  ADDRESS_PROOF
+  ITR_PROOF
+  MSME_CERTIFICATE
+  OTHER
+}
+
+enum UserRole {
+  ADMIN
+  INITIATOR
+  APPROVER
+  IC_TEAM
+  ACCOUNTS
 }

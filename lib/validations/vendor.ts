@@ -68,8 +68,15 @@ export const step5Schema = z.object({
   }
 });
 
+export const uploadSchema = z.object({
+  name: z.string().min(1),
+  size: z.number().positive("File size must be positive"),
+  type: z.string().min(1),
+  url: z.string().url("Invalid file URL"),
+});
+
 export const step6Schema = z.object({
-  uploads: z.any().optional(),
+  uploads: z.record(uploadSchema).optional(),
 });
 
 export type Step1Data = z.infer<typeof step1Schema>;
