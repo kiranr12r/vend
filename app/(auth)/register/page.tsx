@@ -22,10 +22,12 @@ export default function RegisterPage() {
   }
 
   async function handleRegister() {
-  const { firstName, lastName, email, password, confirmPassword } = form;
+  const { firstName, lastName, email, password, confirmPassword,
+          dateOfBirth, phoneNumber, panCard, address, gstNumber } = form;
 
-  if (!firstName || !lastName || !email || !password || !confirmPassword) {
-    setError("First name, last name, email and password are required.");
+  if (!firstName || !lastName || !email || !password || !confirmPassword ||
+      !dateOfBirth || !phoneNumber || !panCard || !address || !gstNumber) {
+    setError("All fields are required.");
     return;
   }
   if (password.length < 8) {
@@ -34,6 +36,18 @@ export default function RegisterPage() {
   }
   if (password !== confirmPassword) {
     setError("Passwords do not match.");
+    return;
+  }
+  if (!/^[6-9][0-9]{9}$/.test(phoneNumber.trim())) {
+    setError("Enter a valid 10-digit mobile number.");
+    return;
+  }
+  if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panCard.trim().toUpperCase())) {
+    setError("Enter a valid PAN (e.g. ABCDE1234F).");
+    return;
+  }
+  if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gstNumber.trim().toUpperCase())) {
+    setError("Enter a valid GST number.");
     return;
   }
 
@@ -45,9 +59,15 @@ export default function RegisterPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name:        `${firstName} ${lastName}`,
+        firstName,
+        lastName,
         email,
         password,
+        dateOfBirth,
+        phoneNumber: phoneNumber.trim(),
+        panCard: panCard.trim().toUpperCase(),
+        address,
+        gstNumber: gstNumber.trim().toUpperCase(),
         role:        "INITIATOR",
       }),
     });
