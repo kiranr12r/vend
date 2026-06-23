@@ -10,14 +10,17 @@ export async function PATCH(
 ) {
   // Only APPROVER and ACCOUNTS can change vendor status
   const session = await getServerSession(authOptions);
-  const guard = requireRole(session, ["ADMIN", "APPROVER", "ACCOUNTS"]);
+  const guard = requireRole(session, ["ADMIN", "APPROVER", "ACCOUNTS", "IC_TEAM"]);
   if (guard) return guard;
 
   try {
     const { id } = await params;
     const { status } = await req.json();
 
-    const validStatuses = ["DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED", "INACTIVE"];
+    const validStatuses = [
+  "DRAFT", "PENDING_APPROVAL", "APPROVED", "REJECTED",
+  "INACTIVE", "CLARIFICATION_NEEDED", "CLARIFICATION_RESUBMITTED", "APPROVER_APPROVED"
+  ];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ success: false, error: "Invalid status" }, { status: 400 });
     }

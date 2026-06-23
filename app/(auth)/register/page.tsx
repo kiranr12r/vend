@@ -48,7 +48,7 @@ export default function RegisterPage() {
         name:        `${firstName} ${lastName}`,
         email,
         password,
-        role:        "ADMIN",
+        role:        "INITIATOR",
         dateOfBirth: form.dateOfBirth,
         phoneNumber: form.phoneNumber,
         panCard:     form.panCard,

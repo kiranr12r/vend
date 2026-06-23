@@ -33,7 +33,19 @@ export default function LoginPage() {
 
       // Hard navigation ensures the session cookie is sent on the next request,
       // avoiding a redirect loop on slower production (Vercel) network round-trips.
-      window.location.href = "/vendors/new";
+      const sessionRes = await fetch("/api/auth/session");
+      const sessionData = await sessionRes.json();
+      const role = sessionData?.user?.role;
+
+      if (role === "APPROVER" || role === "ACCOUNTS") {
+         window.location.href = "/vendors/approve";
+      } else if (role === "IC_TEAM") {
+         window.location.href = "/vendors/clarify";
+      } else if (role === "ADMIN") {
+         window.location.href = "/vendors/list";
+      } else {
+         window.location.href = "/vendors/new"; // INITIATOR
+      }
     } catch (e) {
       console.error("Login error:", e);
       setError("Something went wrong. Please try again.");
