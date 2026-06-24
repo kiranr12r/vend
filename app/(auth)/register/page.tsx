@@ -63,20 +63,11 @@ export default function RegisterPage() {
         lastName,
         email,
         password,
-<<<<<<< HEAD
         dateOfBirth,
         phoneNumber: phoneNumber.trim(),
-        panCard: panCard.trim().toUpperCase(),
+        panCard:     panCard.trim().toUpperCase(),
         address,
-        gstNumber: gstNumber.trim().toUpperCase(),
-=======
-        role:        "INITIATOR",
-        dateOfBirth: form.dateOfBirth,
-        phoneNumber: form.phoneNumber,
-        panCard:     form.panCard,
-        address:     form.address,
-        gstNumber:   form.gstNumber,
->>>>>>> Updatedcode
+        gstNumber:   gstNumber.trim().toUpperCase(),
       }),
     });
 
