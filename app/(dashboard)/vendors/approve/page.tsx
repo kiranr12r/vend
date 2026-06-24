@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 interface Vendor {
@@ -20,6 +21,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 export default function ApproveVendorsPage() {
+  const { data: session } = useSession();
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
@@ -47,7 +49,10 @@ export default function ApproveVendorsPage() {
       const res = await fetch(`/api/vendors/${vendorId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: action === "APPROVE" ? "APPROVED" : "REJECTED", changedBy: "admin@vendorlink.com" }),
+        body: JSON.stringify({
+          status: action === "APPROVE" ? "APPROVED" : "REJECTED",
+          changedBy: session?.user?.email ?? "SYSTEM",
+        }),
       });
       if (res.ok) {
         setVendors((prev) => prev.filter((v) => v.id !== vendorId));
