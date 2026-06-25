@@ -1,4 +1,7 @@
-name: Build and deploy Node.js app to Azure Web App - vendor-management-system-dhanaraj
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy Node.js app to Azure Web App - vendorapp
 
 on:
   push:
@@ -7,44 +10,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: windows-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '22.x'
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
+      - name: npm install, build, and test
+        run: |
+          npm install
+          npm run build --if-present
+          npm run test --if-present
+      
+      - name: Upload artifact for deployment job
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-app
+          path: .
 
-      - name: Build
-        run: npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          NODE_ENV: production
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
-      - name: Remove dev dependencies before deploy
-        run: npm prune --production --legacy-peer-deps
-
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: node-app
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4D63DDE75351435895CBADBA985A0B49 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B42633D1846840969FBE51E99F96CA06 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3BA8D983C6648718946DD29CC4C9BAF }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_7E303EBE92434C3F9CBDD00B43587A8B }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_C357BFEA45A94A93B5E130A5DEA57CD8 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_E5CB2C8B5798420F8521E0E633097B36 }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
-          app-name: 'vendor-management-system-dhanaraj'
+          app-name: 'vendorapp'
           slot-name: 'Production'
           package: .
+          
