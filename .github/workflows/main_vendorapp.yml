@@ -1,5 +1,4 @@
-```yaml
-name: Deploy Next.js to Azure App Service
+name: Build and deploy Node.js app to Azure Web App - vendor-management-system-dhanaraj
 
 on:
   push:
@@ -8,17 +7,44 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Deploy to Azure App Service
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NODE_ENV: production
+
+      - name: Remove dev dependencies before deploy
+        run: npm prune --production --legacy-peer-deps
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4D63DDE75351435895CBADBA985A0B49 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B42633D1846840969FBE51E99F96CA06 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3BA8D983C6648718946DD29CC4C9BAF }}
+
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: vendorapp          # Change if your App Service name differs
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          app-name: 'vendor-management-system-dhanaraj'
+          slot-name: 'Production'
           package: .
-```
