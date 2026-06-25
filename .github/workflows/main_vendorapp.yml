@@ -1,5 +1,5 @@
 ```yaml
-name: Build and deploy Node.js app to Azure Web App - VendorApp
+name: Deploy Next.js to Azure App Service
 
 on:
   push:
@@ -8,32 +8,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Build Next.js
-        run: npm run build
-
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: VendorApp
+          app-name: vendorapp          # Change if your App Service name differs
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: .
 ```
