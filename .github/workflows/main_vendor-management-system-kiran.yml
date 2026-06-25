@@ -1,4 +1,4 @@
-name: Build and deploy Node.js app to Azure Web App - vendor-management-system-kiran
+name: Build and deploy Node.js app to Azure Web App - vendor-management-system-dhanaraj
 
 on:
   push:
@@ -9,58 +9,42 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     permissions:
-      id-token: write
       contents: read
+      id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: "22"
+          node-version: '20.x'
 
       - name: Install dependencies
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          BLOB_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-        run: npm install
+        run: npm install --legacy-peer-deps
 
-      - name: Generate Prisma Client
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          BLOB_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
-        run: npx prisma generate
-
-      - name: Build Next.js App
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          BLOB_STORE_ID: ${{ secrets.BLOB_STORE_ID }}
-          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+      - name: Build
         run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          NODE_ENV: production
+
+      - name: Remove dev dependencies before deploy
+        run: npm prune --production --legacy-peer-deps
 
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E6B9A182D71442B0810CAEA64DFE559F }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A700E9113B1642A6AE38E99CB0C21A0B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_89D94800FCCC4E9392AD28F5A1E18A7B }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4D63DDE75351435895CBADBA985A0B49 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B42633D1846840969FBE51E99F96CA06 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F3BA8D983C6648718946DD29CC4C9BAF }}
 
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: vendor-management-system-kiran
-          slot-name: Production
+          app-name: 'vendor-management-system-dhanaraj'
+          slot-name: 'Production'
           package: .
