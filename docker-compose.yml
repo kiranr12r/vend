@@ -1,0 +1,12 @@
+services:
+  vendor-app:
+    build:
+      context: .
+      args:
+        - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    container_name: vendor-management-system
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped
