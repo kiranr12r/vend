@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { Session } from "next-auth";
 
-export type UserRole = "ADMIN" | "INITIATOR" | "APPROVER" | "IC_TEAM" | "ACCOUNTS";
+export type UserRole = "ADMIN" | "INITIATOR" | "APPROVER" | "IC_TEAM" | "ACCOUNTS" | "VENDOR";
 
 // ─── Route Permission Map ────────────────────────────────────────────────────
 // Keys are path prefixes. Values are the roles allowed to access them.
@@ -36,6 +36,12 @@ export const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
 
   // Vendor detail — everyone (filtered by role in the page itself)
   "/vendors":            ["ADMIN", "INITIATOR", "APPROVER", "IC_TEAM", "ACCOUNTS"],
+
+  // Invoice submission/portal — Accounts/Admin review, Vendor submits their own.
+  // NOTE: this only guards the page itself; per-vendor scoping (a VENDOR user
+  // seeing only their own invoices) is enforced in the API route, not here.
+  // Also remember to add "/invoices/:path*" to middleware.ts's matcher.
+  "/invoices":           ["ADMIN", "ACCOUNTS", "VENDOR"],
 };
 
 // ─── Helper: check if a role is allowed on a given path ─────────────────────
@@ -86,6 +92,10 @@ export const NAV_BY_ROLE: Record<UserRole, NavItem[]> = {
     { label: "Vendor List",       href: "/vendors/list",     icon: "list"    },
     { label: "Update Oracle IDs", href: "/vendors/oracle",   icon: "oracle"  },
     { label: "Reports",           href: "/reports",          icon: "reports" },
+  ],
+  VENDOR: [
+    { label: "Submit Invoice", href: "/invoices/new", badge: "New", icon: "plus" },
+    { label: "My Invoices",    href: "/invoices",                   icon: "list" },
   ],
 };
 

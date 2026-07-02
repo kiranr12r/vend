@@ -66,6 +66,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role as UserRole,
+            vendorId: user.vendorId,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -78,18 +79,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
   async jwt({ token, user }) {
   if (user) {
-    token.id   = user.id as string;
-    token.role = user.role as UserRole;
+    token.id       = user.id as string;
+    token.role     = user.role as UserRole;
+    token.vendorId = (user as any).vendorId ?? null;
   }
   // Only refresh role from DB when token.id exists AND it's not a new login
   if (token.id && !user) {
     try {
       const dbUser = await prisma.user.findUnique({
         where: { id: token.id as string },
-        select: { role: true },
+        select: { role: true, vendorId: true },
       });
       if (dbUser) {
-        token.role = dbUser.role as UserRole;
+        token.role     = dbUser.role as UserRole;
+        token.vendorId = dbUser.vendorId ?? null;
       }
     } catch (e) {
       console.error("JWT role refresh error:", e);
@@ -100,8 +103,9 @@ export const authOptions: NextAuthOptions = {
 },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
+        session.user.id       = token.id as string;
+        session.user.role     = token.role as UserRole;
+        session.user.vendorId = token.vendorId ?? null;
       }
       return session;
     },
