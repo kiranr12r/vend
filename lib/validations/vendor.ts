@@ -28,8 +28,12 @@ export const step2Schema = z.object({
   registeredMsme: z.boolean().optional(),
   msmeNumber: z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (data.registeredMsme && (!data.msmeNumber || data.msmeNumber.length === 0)) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "MSME number is required", path: ["msmeNumber"] });
+  if (data.registeredMsme) {
+    if (!data.msmeNumber || data.msmeNumber.length === 0) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "MSME number is required", path: ["msmeNumber"] });
+    } else if (!/^UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{7}$/.test(data.msmeNumber)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid format. Expected UDYAM-XX-00-0000000, e.g. UDYAM-KA-03-0012345", path: ["msmeNumber"] });
+    }
   }
 });
 
@@ -58,12 +62,18 @@ export const step5Schema = z.object({
   agreementStartDate: z.string().min(1, "Start date is required"),
   agreementEndDate: z.string().min(1, "End date is required"),
   autoRenewal: z.boolean().optional(),
-  noticePeriodDays: z.any().optional(),
+  noticePeriodDays: z.union([z.string(), z.number()]).optional(),
   agreementNotes: z.string().optional(),
 }).superRefine((data, ctx) => {
   if (data.agreementStartDate && data.agreementEndDate) {
     if (new Date(data.agreementEndDate) <= new Date(data.agreementStartDate)) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "End date must be after start date", path: ["agreementEndDate"] });
+    }
+  }
+  if (data.noticePeriodDays !== undefined && data.noticePeriodDays !== "" && data.noticePeriodDays !== null) {
+    const n = Number(data.noticePeriodDays);
+    if (!Number.isInteger(n) || n < 1 || n > 30) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Notice period must be between 1 and 30 days", path: ["noticePeriodDays"] });
     }
   }
 });

@@ -122,14 +122,16 @@ export default function Step5AgreementDetails({ data, onChange }: Props) {
             </div>
             <div>
               <label className={lbl}>Notice Period (days)</label>
-              <input
-                type="number"
+              <select
                 value={data.noticePeriodDays || ""}
-                onChange={(e) => onChange("noticePeriodDays", e.target.value)}
-                placeholder="e.g. 30"
-                min="0"
+                onChange={(e) => onChange("noticePeriodDays", e.target.value ? Number(e.target.value) : "")}
                 className={inp}
-              />
+              >
+                <option value="">Select notice period</option>
+                {Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
+                  <option key={d} value={d}>{d} day{d > 1 ? "s" : ""}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

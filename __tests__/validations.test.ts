@@ -266,6 +266,36 @@ describe("step2Schema", () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it("rejects an msmeNumber that doesn't match the UDYAM format", () => {
+    const result = step2Schema.safeParse({
+      natureOfService: "IT Services",
+      paymentFrequency: "Monthly",
+      registeredMsme: true,
+      msmeNumber: "MSME123456",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a lowercase msmeNumber even if otherwise correctly shaped", () => {
+    const result = step2Schema.safeParse({
+      natureOfService: "IT Services",
+      paymentFrequency: "Monthly",
+      registeredMsme: true,
+      msmeNumber: "udyam-ka-03-0012345",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a properly formatted UDYAM number (e.g. UDYAM-KA-03-0012345)", () => {
+    const result = step2Schema.safeParse({
+      natureOfService: "IT Services",
+      paymentFrequency: "Monthly",
+      registeredMsme: true,
+      msmeNumber: "UDYAM-KA-03-0012345",
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 describe("bankAccountSchema", () => {
@@ -533,6 +563,50 @@ describe("step5Schema", () => {
       agreementEndDate: "2024-12-31",
       noticePeriodDays: 30,
       agreementNotes: "Standard terms",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts noticePeriodDays at the lower boundary (1)", () => {
+    const result = step5Schema.safeParse({
+      agreementStartDate: "2024-01-01",
+      agreementEndDate: "2024-12-31",
+      noticePeriodDays: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects noticePeriodDays of 0", () => {
+    const result = step5Schema.safeParse({
+      agreementStartDate: "2024-01-01",
+      agreementEndDate: "2024-12-31",
+      noticePeriodDays: 0,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects noticePeriodDays above 30", () => {
+    const result = step5Schema.safeParse({
+      agreementStartDate: "2024-01-01",
+      agreementEndDate: "2024-12-31",
+      noticePeriodDays: 31,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a non-integer noticePeriodDays", () => {
+    const result = step5Schema.safeParse({
+      agreementStartDate: "2024-01-01",
+      agreementEndDate: "2024-12-31",
+      noticePeriodDays: 15.5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("allows noticePeriodDays to be omitted entirely", () => {
+    const result = step5Schema.safeParse({
+      agreementStartDate: "2024-01-01",
+      agreementEndDate: "2024-12-31",
     });
     expect(result.success).toBe(true);
   });
